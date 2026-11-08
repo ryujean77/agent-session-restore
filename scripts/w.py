@@ -2,6 +2,7 @@
 """w — 이름 하나로 Claude Code / Codex / AGY 세션을 열고, 다시 열면 그 세션으로 이어 붙는다.
 
   w <name> [claude|codex|agy]   열기(처음) 또는 이어받기(다음부터). 도구 기본값 claude
+  w | w codex | w agy           이름 자동 지정(claude-1, codex-2 …)으로 새로 열기
   w ls                          장부 보기
   w rm <name>                   장부에서 지우기 (대화 자체는 지우지 않음)
   w tasks [folder]              folder/.vscode/tasks.json 재생성 (VS Code 열면 전부 자동 복원)
@@ -183,10 +184,20 @@ def install(bindir):
     return 0
 
 
+def auto_name(tool):
+    reg, n = load(), 1
+    while f"{tool}-{n}" in reg:
+        n += 1
+    return f"{tool}-{n}"
+
+
 def main(argv):
-    if not argv or argv[0] in ("-h", "--help"):
+    if argv and argv[0] in ("-h", "--help"):
         print(__doc__)
         return 0
+    if not argv or (len(argv) == 1 and argv[0] in TOOLS):
+        argv = [auto_name(argv[0] if argv else "claude")] + argv
+        print(f"[w] 이름 자동 지정: {argv[0]}  (다음에 'w {argv[0]}' 로 이어받기)")
     cmd = argv[0]
     if cmd == "ls":
         reg = load()

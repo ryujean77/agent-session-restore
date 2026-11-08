@@ -57,6 +57,9 @@ w seo                      # Claude 세션 'seo' (도구 생략 시 claude)
 w review codex             # Codex 세션 'review'
 w draft agy                # AGY 세션 'draft'
 
+w                          # 이름 없이 → claude-1, claude-2 … 자동 지정
+w codex                    # → codex-1 …   (w agy → agy-1 …)
+
 w seo                      # 언제든 다시: 같은 대화로 연결
 w ls                       # 이름 · 도구 · 세션 ID · 폴더 목록
 w rm draft                 # 장부에서 제거 (대화 기록 자체는 남음)

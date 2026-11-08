@@ -59,4 +59,13 @@ tasks.write_text("// my comment\n{}")
 w.write_tasks(work)
 assert tasks.read_text() == "// my comment\n{}"
 
+# 이름 자동 지정: 'w', 'w codex' → 비어 있는 가장 작은 번호
+w.run_claude = w.run_cli = lambda name, e: 0
+os.chdir(work)
+w.put("codex-1", {"tool": "codex", "cwd": str(work), "id": "C1", "started": 0})
+w.main(["codex"])
+w.main([])
+reg = w.load()
+assert reg["codex-2"]["tool"] == "codex" and reg["claude-1"]["tool"] == "claude", sorted(reg)
+
 print("OK test_w")
