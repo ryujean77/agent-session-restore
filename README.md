@@ -56,6 +56,7 @@ cd ~/my-project            # 작업 폴더에서
 w seo                      # Claude 세션 'seo' (도구 생략 시 claude)
 w review codex             # Codex 세션 'review'
 w draft agy                # AGY 세션 'draft'
+w seo 독산동우시장강의       # 도구 뒤 나머지 단어는 메모 (w ls 에 표시)
 
 w                          # 이름 없이 → claude-1, claude-2 … 자동 지정
 w codex                    # → codex-1 …   (w agy → agy-1 …)

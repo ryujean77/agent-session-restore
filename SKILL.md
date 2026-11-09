@@ -30,7 +30,7 @@ claude-mem 같은 기억 플러그인과 다르다: 그쪽은 새 세션에 요�
 ### Step 1: 설치 확인
 `python scripts/test_w.py` → `OK test_w`. `w` 가 없으면 `python scripts/w.py install` (손으로 .cmd 를 쓰지 않는다: 한글 경로가 코드페이지에 따라 깨진다).
 ### Step 2: 이름 붙여 열기
-사용자에게 안내: 작업 폴더에서 `w <이름> [claude|codex|agy]`. 이름이 귀찮으면 `w` / `w codex` / `w agy` 로 자동 번호(`claude-1` …). 새 이름은 한 번에 하나씩.
+사용자에게 안내: 작업 폴더에서 `w <이름> [claude|codex|agy] [메모…]` (도구가 아닌 단어는 메모로 저장). 이름이 귀찮으면 `w` / `w codex` / `w agy` 로 자동 번호(`claude-1` …). 새 이름은 한 번에 하나씩.
 도구 이름(`claude`·`codex`·`agy`) 하나만 주면 자동 이름 모드이므로, 세션 이름을 도구 이름과 똑같이 지을 수는 없다.
 ### Step 3: 복원
 VS Code 재실행 → `w: <이름>` 터미널 자동 실행. 수동으로는 `w <이름>`. 목록은 `w ls`, Claude 전체 상태는 `claude agents`.

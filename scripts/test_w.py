@@ -68,4 +68,11 @@ w.main([])
 reg = w.load()
 assert reg["codex-2"]["tool"] == "codex" and reg["claude-1"]["tool"] == "claude", sorted(reg)
 
+# 도구가 아닌 단어는 메모 (예전엔 오류로 끝났다)
+w.main(["seo", "독산동우시장강의"])
+w.main(["rv", "codex", "리뷰", "담당"])
+reg = w.load()
+assert reg["seo"]["tool"] == "claude" and reg["seo"]["memo"] == "독산동우시장강의", reg["seo"]
+assert reg["rv"]["tool"] == "codex" and reg["rv"]["memo"] == "리뷰 담당", reg["rv"]
+
 print("OK test_w")

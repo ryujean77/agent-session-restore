@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """w — 이름 하나로 Claude Code / Codex / AGY 세션을 열고, 다시 열면 그 세션으로 이어 붙는다.
 
-  w <name> [claude|codex|agy]   열기(처음) 또는 이어받기(다음부터). 도구 기본값 claude
+  w <name> [claude|codex|agy] [메모…]   열기(처음) 또는 이어받기(다음부터). 도구 기본값 claude
+                                예: w seo 독산동우시장강의 → 이름 seo, 메모 '독산동우시장강의'
   w | w codex | w agy           이름 자동 지정(claude-1, codex-2 …)으로 새로 열기
   w ls                          장부 보기
   w rm <name>                   장부에서 지우기 (대화 자체는 지우지 않음)
@@ -76,11 +77,14 @@ def run_claude(name, e):
     if not live:
         # 이어받을 때는 플래그를 붙이지 않는다: 붙이면 claude 가 같은 세션 대신 복사본을 새로 만든다
         args = [cl, "--bg", "--resume", e["id"]] if e.get("id") else [cl, "--bg", "-n", name]
-        out = subprocess.run(args, cwd=e["cwd"], capture_output=True, text=True,
-                             encoding="utf-8", errors="replace").stdout
-        m = re.search(r"backgrounded\W+([0-9a-f]{8})", out)
-        if not m:
-            sys.exit("claude --bg 실행 결과를 읽지 못했습니다:\n" + out)
+        r = subprocess.run(args, cwd=e["cwd"], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+        m = re.search(r"backgrounded\W+([0-9a-f]{8})", r.stdout)
+        if not m:  # claude 는 오류(예: 폴더 신뢰 안 됨)를 stderr 로 낸다 → 숨기지 않고 보여준다
+            print(f"[w] Claude 세션을 시작하지 못했습니다:\n{r.stdout}{r.stderr}".rstrip(), file=sys.stderr)
+            if "not trusted" in r.stderr:
+                print("[w] 이 폴더에서 'claude' 를 한 번 실행해 신뢰(Yes)를 누른 뒤 다시 w 를 실행하세요.", file=sys.stderr)
+            return 1
         live = next((a for a in claude_live() if a.get("id") == m.group(1)), {"id": m.group(1)})
         if live.get("sessionId") and live["sessionId"] != e.get("id"):
             e["id"] = live["sessionId"]
@@ -204,7 +208,7 @@ def main(argv):
         for n, e in sorted(reg.items()):
             capture(n, e)
         for n, e in sorted(load().items()):
-            print(f"{n:20} {e['tool']:7} {(e.get('id') or '(첫 대화 전)')[:36]:36} {e['cwd']}")
+            print(f"{n:20} {e['tool']:7} {(e.get('id') or '(첫 대화 전)')[:36]:36} {e['cwd']}  {e.get('memo', '')}")
         return 0
     if cmd == "rm" and len(argv) == 2:
         e = load().pop(argv[1], None)
@@ -218,20 +222,27 @@ def main(argv):
     if cmd == "install":
         return install(Path(argv[1]) if len(argv) > 1 else HOME / ".local" / "bin")
 
-    name, tool = cmd, (argv[1] if len(argv) > 1 else None)
-    if tool and tool not in TOOLS:
-        sys.exit(f"도구는 {', '.join(TOOLS)} 중 하나입니다.")
+    name, rest = cmd, argv[1:]
+    tool = rest.pop(0) if rest and rest[0] in TOOLS else None
+    memo = " ".join(rest)  # 도구가 아닌 나머지 단어는 메모
     e = load().get(name)
     if e is None:
         e = {"tool": tool or "claude", "cwd": os.getcwd(), "id": None, "started": time.time()}
+        if memo:
+            e["memo"] = memo
         put(name, e)
         if (Path(e["cwd"]) / ".vscode").is_dir() or (Path(e["cwd"]) / ".git").exists():
             write_tasks(e["cwd"])
     elif tool and tool != e["tool"]:
-        sys.exit(f"'{name}' 은 이미 {e['tool']} 세션입니다. 다른 이름을 쓰거나 'w rm {name}' 후 다시 여세요.")
+        print(f"'{name}' 은 이미 {e['tool']} 세션입니다. 다른 이름을 쓰거나 'w rm {name}' 후 다시 여세요.")
+        return 1
+    elif memo and memo != e.get("memo"):
+        e = {**e, "memo": memo}
+        put(name, e)
     return run_claude(name, e) if e["tool"] == "claude" else run_cli(name, e)
 
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(errors="replace")
+    sys.stderr.reconfigure(errors="replace")
     sys.exit(main(sys.argv[1:]))
